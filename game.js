@@ -17,22 +17,11 @@
       return moves[getRandomIntInclusive(0, 2)];
     };
 
-    const normalizeMove = (move) => {
-      const moveMap = {
-        'кам': 'камень',
-        'к': 'камень',
-        'нож': 'ножницы',
-        'н': 'ножницы',
-        'бум': 'бумага',
-        'б': 'бумага'
-      };
-      return moveMap[move] || move;
+    const normalizeMove = (move, validMoves) => {
+      return validMoves.find(validMove => validMove.toLowerCase().startsWith(move.toLowerCase()));
     };
 
     const determineWinner = (userMove, computerMove) => {
-      userMove = normalizeMove(userMove);
-      computerMove = normalizeMove(computerMove);
-
       if (userMove === computerMove) {
         return 'ничья';
       } else if (
@@ -57,8 +46,15 @@
         }
       }
 
-      const validMoves = ['камень', 'ножницы', 'бумага', 'кам', 'нож', 'бум', 'к', 'н', 'б'];
-      if (!validMoves.includes(userMove)) {
+      if (userMove.trim() === '') {
+        alert('Выберите: камень, ножницы или бумага!');
+        return playRPS();
+      }
+
+      const validMoves = ['камень', 'ножницы', 'бумага'];
+      const normalizedMove = normalizeMove(userMove, validMoves);
+
+      if (!normalizedMove) {
         alert('Выберите: камень, ножницы или бумага!');
         return playRPS();
       }
@@ -66,7 +62,7 @@
       const computerMove = getComputerMove();
       alert(`Компьютер выбрал: ${computerMove}`);
 
-      const winner = determineWinner(userMove, computerMove);
+      const winner = determineWinner(normalizedMove, computerMove);
       return winner;
     };
 
@@ -93,6 +89,44 @@
       }
     };
 
+    const updateBalls = (userMove, computerMove, userParity, computerParity) => {
+      if (userParity === computerParity) {
+        alert('Компьютер угадал.');
+        userCountBalls -= userMove;
+        computerCountBalls += userMove;
+      } else {
+        alert('Компьютер не угадал!');
+        userCountBalls += userMove;
+        computerCountBalls -= userMove;
+      }
+
+      console.log('Игрок: ' + userCountBalls);
+      console.log('Компьютер: ' + computerCountBalls);
+      console.log('Чётность юзера: ' + userParity);
+      console.log('Чётность компьютера: ' + computerParity);
+      console.log('Число компьютера: ' + computerMove);
+
+      (computerCountBalls < 0) ? alert('У вас осталось 10 шариков.') : 
+      alert(`У вас осталось: ${userCountBalls} шариков.`);
+    };
+
+    const checkGameOver = () => {
+      if (userCountBalls <= 0) {
+        alert('Поражение');
+      } else if (computerCountBalls <= 0) {
+        alert('У компьютера больше не осталось шариков. Победа');
+      }
+
+      if (userCountBalls <= 0 || computerCountBalls <= 0) {
+        if (confirm('Хотите сыграть ещё?')) {
+          continueGame = true;
+          start();
+        } else {
+          continueGame = false;
+        }
+      }
+    };
+
     const userTurn = () => {
       if (!continueGame) return;
 
@@ -116,43 +150,10 @@
       const userParity = (userMoveNumber % 2 === 0) ? 'чёт' : 'нечёт';
       const computerParity = (computerMove % 2 === 0) ? 'чёт' : 'нечёт';
 
-      if (computerParity === userParity) {
-        alert('Компьютер угадал.');
-        userCountBalls -= userMoveNumber;
-        computerCountBalls += userMoveNumber;
-      } else {
-        alert('Компьютер не угадал!');
-        userCountBalls += userMoveNumber;
-        computerCountBalls -= userMoveNumber;
-      }
+      updateBalls(userMoveNumber, computerMove, userParity, computerParity);
+      checkGameOver();
 
-      console.log('Игрок: ' + userCountBalls);
-      console.log('Компьютер: ' + computerCountBalls);
-      console.log('Чётность юзера: ' + userParity);
-      console.log('Чётность компьютера: ' + computerParity);
-      console.log('Число компьютера: ' + computerMove);
-
-      (userCountBalls > 10 && computerCountBalls < 0) ? alert('У вас осталось: 10 шариков') :
-          (userCountBalls > 0) ? alert('У вас осталось: ' + userCountBalls + ' шариков.') :
-            alert('У вас больше не осталось шариков...');
-
-      if (userCountBalls <= 0) {
-        alert('Поражение');
-        if (confirm('Хотите сыграть ещё?')) {
-          continueGame = true;
-          start();
-        } else {
-          continueGame = false;
-        }
-      } else if (computerCountBalls <= 0) {
-        alert('У компьютера больше не осталось шариков. Победа');
-        if (confirm('Хотите сыграть ещё?')) {
-          continueGame = true;
-          start();
-        } else {
-          continueGame = false;
-        }
-      } else {
+      if (continueGame) {
         computerTurn();
       }
     };
@@ -175,43 +176,10 @@
 
       const computerQuestionParity = (computerQuestionMove === 'чёт') ? 'чёт' : 'нечёт';
 
-      if (computerQuestionParity === computerParity) {
-        alert('Игрок угадал.');
-        computerCountBalls -= computerMove;
-        userCountBalls += computerMove;
-      } else {
-        alert('Игрок не угадал!');
-        computerCountBalls += computerMove;
-        userCountBalls -= computerMove;
-      }
+      updateBalls(computerMove, computerMove, computerQuestionParity, computerParity);
+      checkGameOver();
 
-      console.log('Игрок: ' + userCountBalls);
-      console.log('Компьютер: ' + computerCountBalls);
-      console.log('Чётность юзера: ' + computerQuestionParity);
-      console.log('Чётность компьютера: ' + computerParity);
-      console.log('Число компьютера: ' + computerMove);
-
-      (userCountBalls > 10 && computerCountBalls < 0) ? alert('У вас осталось: 10 шариков') :
-          (userCountBalls > 0) ? alert('У вас осталось: ' + userCountBalls + ' шариков.') :
-            alert('У вас больше не осталось шариков...');
-
-      if (userCountBalls <= 0) {
-        alert('Поражение');
-        if (confirm('Хотите сыграть ещё?')) {
-          continueGame = true;
-          start();
-        } else {
-          continueGame = false;
-        }
-      } else if (computerCountBalls <= 0) {
-        alert('У компьютера больше не осталось шариков. Победа');
-        if (confirm('Хотите сыграть ещё?')) {
-          continueGame = true;
-          start();
-        } else {
-          continueGame = false;
-        }
-      } else {
+      if (continueGame) {
         userTurn();
       }
     };
