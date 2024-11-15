@@ -21,6 +21,11 @@
       return validMoves.find(validMove => validMove.toLowerCase().startsWith(move.toLowerCase()));
     };
 
+    const normalizeParity = (parity) => {
+      const validParities = ['чёт', 'нечёт'];
+      return validParities.find(validParity => validParity.toLowerCase().startsWith(parity.toLowerCase()));
+    };
+
     const determineWinner = (userMove, computerMove) => {
       if (userMove === computerMove) {
         return 'ничья';
@@ -107,6 +112,7 @@
       console.log('Число компьютера: ' + computerMove);
 
       (computerCountBalls < 0) ? alert('У вас осталось 10 шариков.') : 
+      (userCountBalls < 0) ? alert('У больше не осталось шариков.') : 
       alert(`У вас осталось: ${userCountBalls} шариков.`);
     };
 
@@ -174,7 +180,14 @@
         }
       }
 
-      const computerQuestionParity = (computerQuestionMove === 'чёт') ? 'чёт' : 'нечёт';
+      const normalizedParity = normalizeParity(computerQuestionMove);
+
+      if (!normalizedParity) {
+        alert('Введите "чёт" или "нечёт"!');
+        return computerTurn();
+      }
+
+      const computerQuestionParity = normalizedParity;
 
       updateBalls(computerMove, computerMove, computerQuestionParity, computerParity);
       checkGameOver();
